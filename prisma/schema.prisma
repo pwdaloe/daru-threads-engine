@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts     Post[]
+}
+
+model Post {
+  id          String      @id @default(cuid())
+  title       String?
+  content     String
+  status      PostStatus  @default(IDEA)
+  writingMode WritingMode
+
+  // Scheduling
+  scheduledAt DateTime?
+  postedAt    DateTime?
+
+  // Metadata
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  analytics   Analytics?
+  talentLeads TalentLead[]
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  postId    String   @unique
+
+  views     Int      @default(0)
+  likes     Int      @default(0)
+  replies   Int      @default(0)
+  reposts   Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model TalentLead {
+  id          String   @id @default(cuid())
+  postId      String
+
+  name        String?
+  contact     String?  // email, phone, or social handle
+  notes       String?
+
+  createdAt   DateTime @default(now())
+
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+}
+
+enum PostStatus {
+  IDEA
+  DRAFT
+  APPROVED
+  SCHEDULED
+  POSTED
+}
+
+enum WritingMode {
+  PERSONAL_BRANDING
+  AI_TALENT_FUNNEL
+  HIRING
+  BUSINESS_INSIGHT
+  REWRITE
+}
