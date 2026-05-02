@@ -16,10 +16,13 @@ Personal branding and AI talent funnel content system for Daru, Managing Directo
 - ✅ Admin login system
 - ✅ Dashboard with content analytics
 - ✅ AI-powered content generator with Daru's writing style
+- ✅ Admin login system
+- ✅ Dashboard with content analytics
+- ✅ AI-powered content generator with Daru's writing style
 - ✅ Content management with status workflow (idea → draft → approved → scheduled → posted)
 - ✅ Manual analytics input (views, likes, replies, reposts)
 - ✅ Talent lead tracking from engagements
-- ✅ Content calendar view
+- ✅ Content calendar page for scheduled posts
 - ✅ Multiple writing modes (personal branding, AI talent funnel, hiring, business insights, rewrite)
 
 ## Quick Start
@@ -54,6 +57,7 @@ DATABASE_URL="postgresql://username:password@localhost:5432/daru_threads_db?sche
 
 # OpenAI API
 OPENAI_API_KEY="your-openai-api-key-here"
+OPENAI_MODEL="gpt-3.5-turbo"
 
 # JWT Secret (generate a random string)
 JWT_SECRET="your-super-secret-jwt-key-here"
@@ -96,8 +100,11 @@ daru-threads-app/
 │   │   └── generate/             # AI content generation
 │   ├── auth/                     # Authentication pages
 │   ├── dashboard/                # Dashboard pages
+│   │   ├── calendar/             # Content calendar page
 │   │   ├── generate/             # AI generator page
-│   │   └── layout.tsx            # Dashboard layout
+│   │   ├── leads/                # Talent leads page
+│   │   ├── posts/                # Posts management page
+│   │   ├── layout.tsx            # Dashboard layout
 │   ├── globals.css               # Global styles
 │   └── layout.tsx                # Root layout
 ├── components/                   # Reusable components
@@ -140,12 +147,19 @@ daru-threads-app/
 
 ## AI Content Generation
 
-The system uses OpenAI's GPT-4 to generate content in Daru's authentic voice:
+The system uses OpenAI to generate content in Daru's authentic voice.
 
 - **Language**: Indonesian
 - **Style**: Casual, reflective, short sentences
 - **Tone**: Light humor, business insights, soft CTAs
 - **Personality**: Approachable, knowledgeable, engaging
+- **Model**: default `gpt-3.5-turbo`, overridable via `OPENAI_MODEL`
+
+## Known AI limitations
+
+- AI generation depends on your OpenAI account access and quota.
+- If you see `404 model does not exist`, use `OPENAI_MODEL=gpt-3.5-turbo` or another model available in your account.
+- If you see `429 quota exceeded`, update your OpenAI plan or billing limit before retrying.
 
 ## API Endpoints
 
