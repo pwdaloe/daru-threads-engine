@@ -131,7 +131,7 @@ export default function GeneratePage() {
             <select
               value={writingMode}
               onChange={(e) => setWritingMode(e.target.value as WritingMode)}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md text-black bg-white"
             >
               {Object.entries(WRITING_MODES).map(([key, mode]) => (
                 <option key={key} value={key}>
