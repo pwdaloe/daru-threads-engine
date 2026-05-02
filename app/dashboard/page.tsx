@@ -9,6 +9,8 @@ interface Post {
   status: string
   writingMode: string
   createdAt: string
+  scheduledAt?: string | null
+  postedAt?: string | null
   analytics?: {
     views: number
     likes: number
@@ -78,21 +80,44 @@ export default function DashboardPage() {
     REWRITE: 'Rewrite'
   }
 
-  const monthlyTrend = posts.reduce<Record<string, { label: string; postCount: number }>>((acc, post) => {
-    const date = new Date(post.createdAt)
+  const getTrendDate = (post: Post) => {
+    if (post.postedAt) return post.postedAt
+    if (post.scheduledAt) return post.scheduledAt
+    return post.createdAt
+  }
+
+  const monthlyTrend = posts.reduce<Record<string, { label: string; totalViews: number; postCount: number }>>((acc, post) => {
+    const rawDate = getTrendDate(post)
+    const date = new Date(rawDate)
+    if (Number.isNaN(date.getTime())) {
+      return acc
+    }
+
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-    const label = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+    const label = date.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+    const views = post.analytics?.views ?? 0
 
     acc[key] = acc[key]
-      ? { label, postCount: acc[key].postCount + 1 }
-      : { label, postCount: 1 }
+      ? {
+          label,
+          totalViews: acc[key].totalViews + views,
+          postCount: acc[key].postCount + 1
+        }
+      : { label, totalViews: views, postCount: 1 }
 
     return acc
   }, {})
 
-  const trendData = Object.entries(monthlyTrend)
+  const sortedTrendEntries = Object.entries(monthlyTrend)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, value]) => value)
+
+  const trendData = sortedTrendEntries.map(([key, value]) => ({
+    key,
+    ...value
+  }))
+
+  const trendScaleMax = 100000
+  const trendAxisTicks = [0, 25000, 50000, 75000, 100000]
 
   const modeViews = posts.reduce<Record<string, number>>((acc, post) => {
     const mode = post.writingMode || 'OTHER'
@@ -236,10 +261,10 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Trend Bulanan</h2>
-              <p className="text-sm text-gray-500">Jumlah postingan per bulan berdasarkan tanggal publish.</p>
+              <p className="text-sm text-gray-500">Total views per bulan berdasarkan tanggal publish, jadwal, atau tanggal dibuat.</p>
             </div>
             <div className="text-right text-sm text-slate-500">
-              <div>Sumbu Y: jumlah posting</div>
+              <div>Sumbu Y: total views</div>
               <div>Sumbu X: bulan</div>
             </div>
           </div>
@@ -248,30 +273,82 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-500">Tidak ada data tren yang tersedia.</p>
             ) : (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6 items-end h-48">
+                <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+                  <div className="grid gap-4 sm:grid-cols-[64px_minmax(0,1fr)]">
+                    <div className="relative hidden h-56 sm:block">
+                      {trendAxisTicks.map((tick) => {
+                        const bottom = (tick / trendScaleMax) * 100
+                        return (
+                          <div
+                            key={`axis-${tick}`}
+                            className="absolute left-0 right-0"
+                            style={{ bottom: `${bottom}%`, transform: 'translateY(50%)' }}
+                          >
+                            <span className="text-xs text-slate-400">{formatNumber(tick)}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="relative">
+                      {trendAxisTicks.map((tick) => {
+                        const bottom = (tick / trendScaleMax) * 100
+                        return (
+                          <div
+                            key={`grid-${tick}`}
+                            className="pointer-events-none absolute inset-x-0 border-t border-dashed border-slate-200"
+                            style={{ bottom: `${bottom}%` }}
+                          />
+                        )
+                      })}
+                      <div className="grid h-56 grid-cols-2 items-end gap-4 border-b border-dashed border-slate-300 pb-3 sm:grid-cols-3 xl:grid-cols-6">
                   {trendData.map((item) => {
-                    const maxCount = Math.max(...trendData.map((d) => d.postCount), 1)
-                    const height = Math.max((item.postCount / maxCount) * 100, 10)
+                    const height = item.totalViews > 0
+                      ? Math.max((Math.min(item.totalViews, trendScaleMax) / trendScaleMax) * 100, 8)
+                      : 0
                     return (
-                      <div key={item.label} className="flex flex-col items-center gap-2">
-                        <div className="h-full w-full flex items-end">
-                          <div className="w-full rounded-t-md bg-indigo-600 relative" style={{ height: `${height}%` }}>
-                            <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-700">
-                              {formatNumber(item.postCount)}
+                      <div key={item.label} className="relative h-full">
+                        <div className="flex h-full items-end justify-center">
+                          <div
+                            className="relative w-full max-w-20 rounded-t-xl bg-gradient-to-t from-indigo-600 to-violet-500 shadow-sm"
+                            style={{
+                              height: `${height}%`,
+                              minHeight: item.totalViews > 0 ? '0.75rem' : '0'
+                            }}
+                            title={`${item.label}: ${formatNumber(item.totalViews)} views`}
+                          >
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-700">
+                              {formatNumber(item.totalViews)}
                             </div>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-600 text-center">{item.label}</span>
                       </div>
                     )
                   })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-[64px_minmax(0,1fr)]">
+                    <div className="hidden sm:block" />
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+                      {trendData.map((item) => (
+                        <span key={`${item.label}-label`} className="text-center text-xs text-gray-600">
+                          {item.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="mt-3 rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                   <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-                    <span>Total posting: {formatNumber(trendData.reduce((sum, item) => sum + item.postCount, 0))}</span>
+                    <span>Total views: {formatNumber(trendData.reduce((sum, item) => sum + item.totalViews, 0))}</span>
                     <span>Bulan tercover: {trendData.length}</span>
                   </div>
-                  <div className="mt-2">Periode terakhir: {trendData[0]?.label} — {trendData[trendData.length - 1]?.label}</div>
+                  <div className="mt-2">
+                    Periode data: {trendData[0]?.label} — {trendData[trendData.length - 1]?.label}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    Skala chart tetap: 0 sampai {formatNumber(trendScaleMax)} views.
+                  </div>
                 </div>
               </div>
             )}

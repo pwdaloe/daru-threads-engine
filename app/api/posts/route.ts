@@ -100,7 +100,15 @@ export async function PATCH(request: NextRequest) {
     if (title !== undefined) postData.title = title
     if (content !== undefined) postData.content = content
     if (writingMode !== undefined) postData.writingMode = writingMode
-    if (status !== undefined) postData.status = status
+    if (status !== undefined) {
+      postData.status = status
+
+      if (status === 'POSTED') {
+        postData.postedAt = post.postedAt ?? new Date()
+      } else if (status !== 'POSTED') {
+        postData.postedAt = null
+      }
+    }
     if (scheduledAt !== undefined) {
       postData.scheduledAt = scheduledAt ? parseOptionalDate(scheduledAt) : null
     }
@@ -179,6 +187,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const isPosted = status === 'POSTED'
+
     const post = await prisma.post.create({
       data: {
         title,
@@ -186,6 +196,7 @@ export async function POST(request: NextRequest) {
         writingMode,
         status: status || 'IDEA',
         scheduledAt: scheduledAtValue,
+        postedAt: isPosted ? new Date() : null,
         userId: payload.userId,
         analytics: {
           create: {

@@ -37,6 +37,8 @@ export default function LeadsPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [skillFilter, setSkillFilter] = useState('ALL')
+  const [locationFilter, setLocationFilter] = useState('ALL')
   const [showModal, setShowModal] = useState(false)
   const [editingLead, setEditingLead] = useState<TalentLead | null>(null)
   const router = useRouter()
@@ -105,6 +107,38 @@ export default function LeadsPage() {
       void fetchData()
     })
   }, [router])
+
+  const parseSkills = (skills?: string) =>
+    (skills || '')
+      .split(',')
+      .map((skill) => skill.trim())
+      .filter(Boolean)
+
+  const skillOptions = Array.from(
+    new Set(leads.flatMap((lead) => parseSkills(lead.skills)))
+  ).sort((a, b) => a.localeCompare(b, 'id-ID'))
+
+  const locationOptions = Array.from(
+    new Set(
+      leads
+        .map((lead) => lead.location?.trim())
+        .filter((location): location is string => Boolean(location))
+    )
+  ).sort((a, b) => a.localeCompare(b, 'id-ID'))
+
+  const filteredLeads = leads.filter((lead) => {
+    const matchesSkill =
+      skillFilter === 'ALL' || parseSkills(lead.skills).some((skill) => skill === skillFilter)
+    const matchesLocation =
+      locationFilter === 'ALL' || (lead.location?.trim() ?? '') === locationFilter
+
+    return matchesSkill && matchesLocation
+  })
+
+  const resetFilters = () => {
+    setSkillFilter('ALL')
+    setLocationFilter('ALL')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -194,6 +228,11 @@ export default function LeadsPage() {
     setShowModal(true)
   }
 
+  const formatSourcePost = (lead: TalentLead) => {
+    if (!lead.post) return '-'
+    return lead.post.title || lead.post.writingMode.replaceAll('_', ' ').toLowerCase()
+  }
+
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="mb-8">
@@ -222,86 +261,169 @@ export default function LeadsPage() {
           <div className="text-red-800">{error}</div>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
-            {leads.length === 0 ? (
-              <li className="px-6 py-8 text-center text-gray-500">
-                Belum ada talent leads. Klik &quot;Tambah Lead&quot; untuk memulai.
-              </li>
-            ) : (
-              leads.map((lead) => (
-                <li key={lead.id} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-lg font-medium text-gray-900 truncate">
+        <div className="space-y-6">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-sm text-slate-500">Total Lead</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-900">{leads.length}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-sm text-slate-500">Lokasi Unik</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-900">{locationOptions.length}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-sm text-slate-500">Skill Terdeteksi</p>
+              <p className="mt-1 text-2xl font-semibold text-slate-900">{skillOptions.length}</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Filter Leads</h2>
+                <p className="text-sm text-slate-500">Saring kandidat berdasarkan skill dan lokasi.</p>
+              </div>
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="rounded-md bg-slate-100 px-4 py-2 text-sm text-slate-700 hover:bg-slate-200"
+              >
+                Reset Filter
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Skills</label>
+                <select
+                  value={skillFilter}
+                  onChange={(e) => setSkillFilter(e.target.value)}
+                  className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="ALL">Semua Skills</option>
+                  {skillOptions.map((skill) => (
+                    <option key={skill} value={skill}>
+                      {skill}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Lokasi</label>
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  className="mt-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="ALL">Semua Lokasi</option>
+                  {locationOptions.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-4 text-sm text-slate-600">
+              Menampilkan <span className="font-semibold text-slate-900">{filteredLeads.length}</span> dari{' '}
+              <span className="font-semibold text-slate-900">{leads.length}</span> lead.
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+                <thead className="bg-slate-50 text-slate-700">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Kandidat</th>
+                    <th className="px-4 py-3 font-medium">Kontak</th>
+                    <th className="px-4 py-3 font-medium">Lokasi</th>
+                    <th className="px-4 py-3 font-medium">Skills</th>
+                    <th className="px-4 py-3 font-medium">Sumber Post</th>
+                    <th className="px-4 py-3 font-medium">Dibuat</th>
+                    <th className="px-4 py-3 font-medium">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {filteredLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                        Tidak ada lead yang cocok dengan filter saat ini.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLeads.map((lead) => (
+                      <tr key={lead.id} className="align-top hover:bg-slate-50">
+                        <td className="px-4 py-4">
+                          <div className="font-medium text-slate-900">
                             {lead.name || 'Nama tidak tersedia'}
-                          </p>
-                          <p className="text-sm text-gray-500 truncate">
-                            @{lead.accountName || 'Account tidak tersedia'}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
-                        {lead.email && (
-                          <div>
-                            <span className="font-medium">Email:</span> {lead.email}
                           </div>
-                        )}
-                        {lead.whatsapp && (
-                          <div>
-                            <span className="font-medium">WhatsApp:</span> {lead.whatsapp}
+                          <div className="mt-1 text-xs text-slate-500">
+                            {lead.accountName ? `@${lead.accountName}` : 'Account tidak tersedia'}
                           </div>
-                        )}
-                        {lead.location && (
-                          <div>
-                            <span className="font-medium">Lokasi:</span> {lead.location}
+                          {lead.notes && (
+                            <div className="mt-2 max-w-xs text-xs text-slate-500 line-clamp-3">
+                              {lead.notes}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-slate-700">
+                          <div>{lead.email || '-'}</div>
+                          <div className="mt-1 text-xs text-slate-500">{lead.whatsapp || '-'}</div>
+                        </td>
+                        <td className="px-4 py-4 text-slate-700">
+                          {lead.location || '-'}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex max-w-xs flex-wrap gap-2">
+                            {parseSkills(lead.skills).length === 0 ? (
+                              <span className="text-slate-500">-</span>
+                            ) : (
+                              parseSkills(lead.skills).map((skill) => (
+                                <span
+                                  key={`${lead.id}-${skill}`}
+                                  className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700"
+                                >
+                                  {skill}
+                                </span>
+                              ))
+                            )}
                           </div>
-                        )}
-                        {lead.skills && (
-                          <div>
-                            <span className="font-medium">Skills:</span> {lead.skills}
+                        </td>
+                        <td className="px-4 py-4 text-slate-700">
+                          <div>{formatSourcePost(lead)}</div>
+                          <div className="mt-1 text-xs text-slate-500">
+                            {lead.post?.writingMode.replaceAll('_', ' ').toLowerCase() || '-'}
                           </div>
-                        )}
-                      </div>
-
-                      {lead.notes && (
-                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                          {lead.notes}
-                        </p>
-                      )}
-
-                      <div className="mt-2 text-xs text-gray-400">
-                        Dibuat: {new Date(lead.createdAt).toLocaleDateString('id-ID')}
-                        {lead.post && (
-                          <span className="ml-4">
-                            Dari post: {lead.post.writingMode.replace('_', ' ').toLowerCase()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => handleEdit(lead)}
-                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(lead.id)}
-                        className="text-red-600 hover:text-red-900 text-sm font-medium"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))
-            )}
-          </ul>
+                        </td>
+                        <td className="px-4 py-4 text-slate-700">
+                          {new Date(lead.createdAt).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleEdit(lead)}
+                              className="text-sm font-medium text-indigo-600 hover:text-indigo-900"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(lead.id)}
+                              className="text-sm font-medium text-red-600 hover:text-red-900"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
