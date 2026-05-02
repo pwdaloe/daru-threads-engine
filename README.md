@@ -2,6 +2,22 @@
 
 Personal branding and AI talent funnel content system for Daru, Managing Director of Sunartha.
 
+## 🚨 SECURITY WARNING
+
+**This repository is PUBLIC on GitHub. Never commit real credentials or sensitive information.**
+
+### What NOT to do:
+- ❌ Never commit `.env` files with real credentials
+- ❌ Never expose API keys, database passwords, or JWT secrets
+- ❌ Never share sensitive configuration in code
+
+### Security Best Practices:
+- ✅ Use `.env.example` as template for environment variables
+- ✅ Store real credentials in `.env.local` (automatically ignored by git)
+- ✅ Rotate credentials immediately if accidentally exposed
+- ✅ Use environment-specific credentials (dev/staging/prod)
+- ✅ Monitor API usage for unauthorized access
+
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
@@ -13,9 +29,6 @@ Personal branding and AI talent funnel content system for Daru, Managing Directo
 
 ## Features
 
-- ✅ Admin login system
-- ✅ Dashboard with content analytics
-- ✅ AI-powered content generator with Daru's writing style
 - ✅ Admin login system
 - ✅ Dashboard with content analytics
 - ✅ AI-powered content generator with Daru's writing style
@@ -43,25 +56,36 @@ npm install
 
 ### 2. Environment Setup
 
-Copy the `.env` file and configure your environment variables:
+**CRITICAL: Never commit real credentials to version control!**
+
+Copy the environment template and configure your variables:
 
 ```bash
-cp .env .env.local
+# Copy template (safe to commit)
+cp .env.example .env.local
 ```
 
-Edit `.env.local` with your actual values:
+Edit `.env.local` with your actual values (this file is automatically ignored by git):
 
 ```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/daru_threads_db?schema=public"
+# Database - Get from Supabase Dashboard
+DATABASE_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@[REGION].pooler.supabase.com:5432/postgres"
 
-# OpenAI API
-OPENAI_API_KEY="your-openai-api-key-here"
-OPENAI_MODEL="gpt-3.5-turbo"
+# OpenAI API - Get from OpenAI Platform
+OPENAI_API_KEY="sk-proj-your-actual-openai-api-key"
 
-# JWT Secret (generate a random string)
+# JWT Secret - Generate secure random string
 JWT_SECRET="your-super-secret-jwt-key-here"
 ```
+
+### 3. Generate Secure JWT Secret
+
+```bash
+# Generate a secure random string for JWT
+openssl rand -hex 32
+```
+
+Or use online generators, but never reuse secrets across environments.
 
 ### 3. Database Setup
 
@@ -88,6 +112,26 @@ Open [http://localhost:3000](http://localhost:3000) and navigate to `/auth/login
 
 - **Email**: admin@daru-threads.com
 - **Password**: admin123
+
+⚠️ **Change default password immediately after first login!**
+
+## Security Checklist
+
+### Before Going Live:
+- [ ] Rotate all API keys and database credentials
+- [ ] Use environment-specific credentials (dev/staging/prod)
+- [ ] Enable database connection pooling limits
+- [ ] Set up API rate limiting
+- [ ] Configure CORS properly
+- [ ] Enable HTTPS everywhere
+- [ ] Set up monitoring and alerts for suspicious activity
+
+### Ongoing Security:
+- [ ] Monitor OpenAI API usage for unauthorized access
+- [ ] Regularly rotate JWT secrets
+- [ ] Keep dependencies updated
+- [ ] Review access logs periodically
+- [ ] Use strong, unique passwords
 
 ## Project Structure
 
