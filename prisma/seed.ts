@@ -114,17 +114,29 @@ Kalau lagi planning ERP implementation, fokus dulu ke business process mapping. 
   const sampleLeads = [
     {
       name: 'Ahmad Rahman',
-      contact: 'ahmad.rahman@email.com',
+      accountName: 'ahmadrahman',
+      email: 'ahmad.rahman@email.com',
+      whatsapp: '+6281234567890',
+      location: 'Jakarta',
+      skills: 'Python, Machine Learning, TensorFlow',
       notes: 'Fresh graduate computer science, interested in AI/ML. Replied to hiring post about AI Engineer position.'
     },
     {
       name: 'Sari Wijaya',
-      contact: '@sariwijaya (LinkedIn)',
+      accountName: 'sariwijaya',
+      email: 'sari.wijaya@email.com',
+      whatsapp: '+628987654321',
+      location: 'Bandung',
+      skills: 'React, Node.js, PostgreSQL',
       notes: 'Senior developer with 5 years experience. Engaged with ERP implementation post, asked about consulting opportunities.'
     },
     {
       name: 'Budi Santoso',
-      contact: '+62812xxxxxxxx',
+      accountName: 'budisantoso',
+      email: 'budi.santoso@email.com',
+      whatsapp: '+628112233445',
+      location: 'Surabaya',
+      skills: 'Business Analysis, AI Strategy, Data Analytics',
       notes: 'Business analyst interested in AI applications. DM after reading AI adoption post.'
     }
   ]

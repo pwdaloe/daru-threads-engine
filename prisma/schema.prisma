@@ -63,11 +63,23 @@ model TalentLead {
   id          String   @id @default(cuid())
   postId      String
 
+  // Basic Info
   name        String?
-  contact     String?  // email, phone, or social handle
+  accountName String?  // Social media account name/handle
+
+  // Contact Info
+  email       String?
+  whatsapp    String?
+
+  // Location & Skills
+  location    String?
+  skills      String?  // Comma-separated skills
+
+  // Additional Info
   notes       String?
 
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
