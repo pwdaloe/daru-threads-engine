@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+const leadPostSelection = {
+  id: true,
+  title: true,
+  content: true,
+  writingMode: true,
+  createdAt: true
+} as const
+
 // GET /api/leads - Get all talent leads
 export async function GET(request: NextRequest) {
   try {
@@ -24,13 +32,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         post: {
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            writingMode: true,
-            createdAt: true
-          }
+          select: leadPostSelection
         }
       },
       orderBy: {
@@ -62,35 +64,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
-    const { postId, name, accountName, email, whatsapp, location, skills, notes } = await request.json()
+    const {
+      postId,
+      leadType,
+      name,
+      accountName,
+      organization,
+      email,
+      whatsapp,
+      location,
+      skills,
+      notes
+    } = await request.json()
 
-    if (!postId) {
-      return NextResponse.json(
-        { error: 'Post ID diperlukan' },
-        { status: 400 }
-      )
-    }
+    if (postId) {
+      const post = await prisma.post.findFirst({
+        where: {
+          id: postId,
+          userId: payload.userId
+        },
+        select: { id: true }
+      })
 
-    const post = await prisma.post.findFirst({
-      where: {
-        id: postId,
-        userId: payload.userId
-      },
-      select: { id: true }
-    })
-
-    if (!post) {
-      return NextResponse.json(
-        { error: 'Post tidak ditemukan atau tidak dapat diakses' },
-        { status: 404 }
-      )
+      if (!post) {
+        return NextResponse.json(
+          { error: 'Post tidak ditemukan atau tidak dapat diakses' },
+          { status: 404 }
+        )
+      }
     }
 
     const lead = await prisma.talentLead.create({
       data: {
         postId,
+        leadType: leadType || 'CANDIDATE',
+        source: 'MANUAL',
         name,
         accountName,
+        organization,
         email,
         whatsapp,
         location,
@@ -99,13 +110,7 @@ export async function POST(request: NextRequest) {
       },
       include: {
         post: {
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            writingMode: true,
-            createdAt: true
-          }
+          select: leadPostSelection
         }
       }
     })

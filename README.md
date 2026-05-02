@@ -71,8 +71,8 @@ Edit `.env.local` with your actual values (this file is automatically ignored by
 # Database - Get from Supabase Dashboard
 DATABASE_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres?pgbouncer=true"
 
-# Optional: direct connection for Prisma CLI
-# DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres"
+# Direct connection for Prisma CLI
+DIRECT_URL="postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
 
 # OpenAI API - Get from OpenAI Platform
 OPENAI_API_KEY="sk-proj-your-actual-openai-api-key"

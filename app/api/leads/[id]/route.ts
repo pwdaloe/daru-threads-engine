@@ -6,6 +6,14 @@ type RouteContext = {
   params: Promise<{ id: string }>
 }
 
+const leadPostSelection = {
+  id: true,
+  title: true,
+  content: true,
+  writingMode: true,
+  createdAt: true
+} as const
+
 // PUT /api/leads/[id] - Update talent lead
 export async function PUT(
   request: NextRequest,
@@ -24,7 +32,18 @@ export async function PUT(
     }
 
     const { id } = await params
-    const { name, accountName, email, whatsapp, location, skills, notes } = await request.json()
+    const {
+      leadType,
+      postId,
+      name,
+      accountName,
+      organization,
+      email,
+      whatsapp,
+      location,
+      skills,
+      notes
+    } = await request.json()
 
     const existingLead = await prisma.talentLead.findFirst({
       where: {
@@ -40,11 +59,28 @@ export async function PUT(
       return NextResponse.json({ error: 'Talent lead tidak ditemukan' }, { status: 404 })
     }
 
+    if (postId) {
+      const ownedPost = await prisma.post.findFirst({
+        where: {
+          id: postId,
+          userId: payload.userId
+        },
+        select: { id: true }
+      })
+
+      if (!ownedPost) {
+        return NextResponse.json({ error: 'Post tidak ditemukan atau tidak dapat diakses' }, { status: 404 })
+      }
+    }
+
     const lead = await prisma.talentLead.update({
       where: { id },
       data: {
+        leadType,
+        postId: postId || null,
         name,
         accountName,
+        organization,
         email,
         whatsapp,
         location,
@@ -54,13 +90,7 @@ export async function PUT(
       },
       include: {
         post: {
-          select: {
-            id: true,
-            title: true,
-            content: true,
-            writingMode: true,
-            createdAt: true
-          }
+          select: leadPostSelection
         }
       }
     })

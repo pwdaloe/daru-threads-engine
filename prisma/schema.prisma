@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -60,28 +61,31 @@ model Analytics {
 }
 
 model TalentLead {
-  id          String   @id @default(cuid())
-  postId      String
+  id           String     @id @default(cuid())
+  postId       String?
+  leadType     LeadType   @default(CANDIDATE)
+  source       LeadSource @default(MANUAL)
 
   // Basic Info
-  name        String?
-  accountName String?  // Social media account name/handle
+  name         String?
+  accountName  String?  // Social media account name/handle
+  organization String?
 
   // Contact Info
-  email       String?
-  whatsapp    String?
+  email        String?
+  whatsapp     String?
 
   // Location & Skills
-  location    String?
-  skills      String?  // Comma-separated skills
+  location     String?
+  skills       String?  // Comma-separated skills
 
   // Additional Info
-  notes       String?
+  notes        String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post         Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
@@ -102,4 +106,15 @@ enum WritingMode {
   HIRING
   BUSINESS_INSIGHT
   REWRITE
+}
+
+enum LeadType {
+  CANDIDATE
+  PARTNER
+  CLIENT
+}
+
+enum LeadSource {
+  MANUAL
+  PUBLIC_FORM
 }
