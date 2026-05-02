@@ -95,7 +95,8 @@ export default function LeadsPage() {
       }
 
       setLeads(leadsData)
-      setPosts(postsData)
+      // Filter posts to only show HIRING type posts
+      setPosts(postsData.filter((post: Post) => post.writingMode === 'HIRING'))
     } catch {
       setError('Gagal memuat data. Silakan coba lagi.')
     } finally {
