@@ -50,7 +50,16 @@ Konten asli:
 Buat versi yang lebih engaging dan autentik.`,
 }
 
-export async function generatePost(options: GeneratePostOptions): Promise<string> {
+export interface GeneratePostResult {
+  content: string
+  usage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
+}
+
+export async function generatePost(options: GeneratePostOptions): Promise<GeneratePostResult> {
   const prompt = PROMPTS[options.writingMode]
     .replace('{topic}', options.topic || 'topik umum')
     .replace('{existingContent}', options.existingContent || '')
@@ -72,7 +81,14 @@ export async function generatePost(options: GeneratePostOptions): Promise<string
       temperature: 0.7,
     })
 
-    return completion.choices[0]?.message?.content?.trim() || 'Gagal menghasilkan konten.'
+    return {
+      content: completion.choices[0]?.message?.content?.trim() || 'Gagal menghasilkan konten.',
+      usage: {
+        promptTokens: completion.usage?.prompt_tokens || 0,
+        completionTokens: completion.usage?.completion_tokens || 0,
+        totalTokens: completion.usage?.total_tokens || 0,
+      }
+    }
   } catch (error) {
     console.error('OpenAI generation error:', error)
     throw new Error(

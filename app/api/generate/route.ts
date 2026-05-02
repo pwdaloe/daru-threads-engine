@@ -31,13 +31,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const generatedContent = await generatePost({
+    const result = await generatePost({
       writingMode,
       topic,
       existingContent
     })
 
-    return NextResponse.json({ content: generatedContent })
+    return NextResponse.json({ 
+      content: result.content,
+      usage: result.usage
+    })
 
   } catch (error) {
     console.error('Generate post error:', error)

@@ -35,6 +35,7 @@ export default function GeneratePage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [tokenUsage, setTokenUsage] = useState<{ promptTokens: number; completionTokens: number; totalTokens: number } | null>(null)
 
   const handleGenerate = async () => {
     if (!topic && writingMode !== 'REWRITE') {
@@ -50,6 +51,7 @@ export default function GeneratePage() {
     setLoading(true)
     setError('')
     setGeneratedContent('')
+    setTokenUsage(null)
 
     try {
       const token = localStorage.getItem('token')
@@ -70,6 +72,7 @@ export default function GeneratePage() {
 
       if (response.ok) {
         setGeneratedContent(data.content)
+        setTokenUsage(data.usage)
       } else {
         setError(data.error)
       }
@@ -198,7 +201,7 @@ export default function GeneratePage() {
                 readOnly
                 rows={12}
                 placeholder="Konten akan muncul di sini setelah dihasilkan..."
-                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-gray-50"
+                className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white text-black"
               />
               {generatedContent && (
                 <div className="absolute top-2 right-2 flex space-x-2">
@@ -218,6 +221,25 @@ export default function GeneratePage() {
               )}
             </div>
           </div>
+
+          {tokenUsage && (
+            <div className="bg-indigo-50 border border-indigo-200 rounded-md p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-indigo-900">
+                    📊 Penggunaan Token
+                  </h3>
+                  <div className="mt-2 text-sm text-indigo-800">
+                    <ul className="space-y-1">
+                      <li><strong>Prompt Tokens:</strong> {tokenUsage.promptTokens}</li>
+                      <li><strong>Completion Tokens:</strong> {tokenUsage.completionTokens}</li>
+                      <li><strong>Total Tokens:</strong> {tokenUsage.totalTokens}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {generatedContent && (
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
