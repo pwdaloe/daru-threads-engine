@@ -106,12 +106,6 @@ export default function DashboardPage() {
 
   const modeTotalViews = modeData.reduce((sum, item) => sum + item.views, 0)
 
-  const topViewedPost = posts.reduce<Post | null>((current, post) => {
-    const currentViews = current?.analytics?.views ?? 0
-    const postViews = post.analytics?.views ?? 0
-    return postViews > currentViews ? post : current
-  }, null)
-
   const mostRelevantMode = modeData.reduce((best, item) => {
     if (!best || item.views > best.views) return item
     return best

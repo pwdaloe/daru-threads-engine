@@ -53,17 +53,7 @@ export default function LeadsPage() {
     notes: ''
   })
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      router.push('/auth/login')
-      return
-    }
-
-    fetchData()
-  }, [router])
-
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const token = localStorage.getItem('token')
 
@@ -103,6 +93,18 @@ export default function LeadsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/auth/login')
+      return
+    }
+
+    queueMicrotask(() => {
+      void fetchData()
+    })
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -224,7 +226,7 @@ export default function LeadsPage() {
           <ul className="divide-y divide-gray-200">
             {leads.length === 0 ? (
               <li className="px-6 py-8 text-center text-gray-500">
-                Belum ada talent leads. Klik "Tambah Lead" untuk memulai.
+                Belum ada talent leads. Klik &quot;Tambah Lead&quot; untuk memulai.
               </li>
             ) : (
               leads.map((lead) => (

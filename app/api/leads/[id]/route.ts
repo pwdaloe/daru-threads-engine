@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
-const prisma = new PrismaClient()
+type RouteContext = {
+  params: Promise<{ id: string }>
+}
 
 // PUT /api/leads/[id] - Update talent lead
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -21,10 +23,25 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
+    const { id } = await params
     const { name, accountName, email, whatsapp, location, skills, notes } = await request.json()
 
+    const existingLead = await prisma.talentLead.findFirst({
+      where: {
+        id,
+        post: {
+          userId: payload.userId
+        }
+      },
+      select: { id: true }
+    })
+
+    if (!existingLead) {
+      return NextResponse.json({ error: 'Talent lead tidak ditemukan' }, { status: 404 })
+    }
+
     const lead = await prisma.talentLead.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         accountName,
@@ -64,7 +81,7 @@ export async function PUT(
 // DELETE /api/leads/[id] - Delete talent lead
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: RouteContext
 ) {
   try {
     const authHeader = request.headers.get('authorization')
@@ -78,8 +95,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
     }
 
+    const { id } = await params
+    const existingLead = await prisma.talentLead.findFirst({
+      where: {
+        id,
+        post: {
+          userId: payload.userId
+        }
+      },
+      select: { id: true }
+    })
+
+    if (!existingLead) {
+      return NextResponse.json({ error: 'Talent lead tidak ditemukan' }, { status: 404 })
+    }
+
     await prisma.talentLead.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ message: 'Talent lead berhasil dihapus' })

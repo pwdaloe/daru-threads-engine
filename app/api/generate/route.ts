@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: 'OpenAI API key belum dikonfigurasi. Periksa file .env.' },
+        { error: 'OpenAI API key belum dikonfigurasi. Periksa file .env.local.' },
         { status: 500 }
       )
     }
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Generate post error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Gagal menghasilkan konten. Pastikan OpenAI API key sudah dikonfigurasi.' },
+      { error: error instanceof Error ? error.message : 'Gagal menghasilkan konten. Pastikan OpenAI API key sudah dikonfigurasi di .env.local.' },
       { status: 500 }
     )
   }

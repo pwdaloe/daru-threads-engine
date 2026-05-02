@@ -160,7 +160,7 @@ daru-threads-app/
 │   ├── schema.prisma             # Database schema
 │   └── seed.ts                   # Sample data
 ├── public/                       # Static assets
-└── .env                          # Environment variables
+└── .env.local                    # Local environment variables (ignored by git)
 ```
 
 ## Database Schema

@@ -1,15 +1,5 @@
 import OpenAI from 'openai'
-
-const openaiApiKey = process.env.OPENAI_API_KEY
-const openaiModel = process.env.OPENAI_MODEL || 'gpt-3.5-turbo'
-
-if (!openaiApiKey) {
-  throw new Error('OPENAI_API_KEY belum dikonfigurasi. Tambahkan OpenAI API key di .env.')
-}
-
-const openai = new OpenAI({
-  apiKey: openaiApiKey,
-})
+import { getOpenAIConfig } from '@/lib/env'
 
 export interface GeneratePostOptions {
   writingMode: 'PERSONAL_BRANDING' | 'AI_TALENT_FUNNEL' | 'HIRING' | 'BUSINESS_INSIGHT' | 'REWRITE'
@@ -60,13 +50,15 @@ export interface GeneratePostResult {
 }
 
 export async function generatePost(options: GeneratePostOptions): Promise<GeneratePostResult> {
+  const { apiKey, model } = getOpenAIConfig()
+  const openai = new OpenAI({ apiKey })
   const prompt = PROMPTS[options.writingMode]
     .replace('{topic}', options.topic || 'topik umum')
     .replace('{existingContent}', options.existingContent || '')
 
   try {
     const completion = await openai.chat.completions.create({
-      model: openaiModel,
+      model,
       messages: [
         {
           role: 'system',

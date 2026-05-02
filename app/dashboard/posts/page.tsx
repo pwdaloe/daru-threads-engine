@@ -47,6 +47,11 @@ type FormData = {
   reposts: number
 }
 
+type SavePostPayload = Omit<FormData, 'scheduledAt'> & {
+  scheduledAt: string | null
+  postId?: string
+}
+
 const defaultFormData: FormData = {
   title: '',
   content: '',
@@ -182,7 +187,7 @@ export default function PostsPage() {
 
     setFormStatus('saving')
     const method = editPostId ? 'PATCH' : 'POST'
-    const payload: any = {
+    const payload: SavePostPayload = {
       title: formData.title,
       content: formData.content,
       writingMode: formData.writingMode,
@@ -254,6 +259,18 @@ export default function PostsPage() {
           Tambah, edit, dan monitor konten Threads dengan metrik manual.
         </p>
       </div>
+
+      {loading && (
+        <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
+          Memuat daftar konten...
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 shadow-sm">
+          {error}
+        </div>
+      )}
 
       <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

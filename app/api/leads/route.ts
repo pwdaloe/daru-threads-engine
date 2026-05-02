@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 // GET /api/leads - Get all talent leads
 export async function GET(request: NextRequest) {
@@ -19,6 +17,11 @@ export async function GET(request: NextRequest) {
     }
 
     const leads = await prisma.talentLead.findMany({
+      where: {
+        post: {
+          userId: payload.userId
+        }
+      },
       include: {
         post: {
           select: {
@@ -65,6 +68,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Post ID diperlukan' },
         { status: 400 }
+      )
+    }
+
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+        userId: payload.userId
+      },
+      select: { id: true }
+    })
+
+    if (!post) {
+      return NextResponse.json(
+        { error: 'Post tidak ditemukan atau tidak dapat diakses' },
+        { status: 404 }
       )
     }
 
